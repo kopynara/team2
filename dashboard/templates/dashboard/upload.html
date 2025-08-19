@@ -1,47 +1,20 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <title>CSV 업로드 & 시각화</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 30px; }
-        nav { margin-bottom: 20px; }
-        nav a { margin-right: 15px; text-decoration: none; color: blue; }
-        .container { max-width: 900px; margin: auto; }
-        .preview { margin-top: 20px; }
-        img { max-width: 100%; height: auto; margin-top: 20px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>📊 CSV 업로드 & 시각화</h1>
+{% extends "base.html" %}
 
-        <!-- 상단 메뉴 -->
-        <nav>
-            <a href="{% url 'home' %}">🏠 Home</a>
-            <a href="{% url 'upload' %}">📂 Upload</a>
-            <a href="{% url 'visualize' %}">📊 Visualize</a>
-        </nav>
+{% block content %}
+  <h2>CSV 파일 업로드 📂</h2>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="file" accept=".csv" required>
+    <button type="submit">업로드</button>
+  </form>
 
-        <!-- 업로드 폼 -->
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            <input type="file" name="file" accept=".csv">
-            <button type="submit">업로드</button>
-        </form>
+  {% if preview %}
+    <h3>📊 데이터 미리보기</h3>
+    <div>{{ preview|safe }}</div>
+  {% endif %}
 
-        <!-- 업로드 결과 영역 -->
-        <div class="preview">
-            {% if preview %}
-                <h2>✅ 업로드 결과</h2>
-                {{ preview|safe }}
-            {% endif %}
-
-            {% if img_tag %}
-                <h2>📈 그래프</h2>
-                {{ img_tag|safe }}
-            {% endif %}
-        </div>
-    </div>
-</body>
-</html>
+  {% if img_tag %}
+    <h3>📈 자동 생성된 그래프</h3>
+    <div>{{ img_tag|safe }}</div>
+  {% endif %}
+{% endblock %}

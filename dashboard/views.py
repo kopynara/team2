@@ -5,20 +5,23 @@ import matplotlib.pyplot as plt
 import io, urllib, base64
 
 def home(request):
-    return HttpResponse("🚀 Dashboard 메인 페이지 (여기서 시작!)")
+    return render(request, "dashboard/home.html")
 
 def visualize(request):
-    return HttpResponse("📊 데이터 시각화 페이지 (곧 구현 예정)")
+    return render(request, "dashboard/visualize.html    ")
 
 # ==========================
-# 🎨 CSV 업로드 + 시각화 (템플릿 연동)
+# 🎨 CSV 업로드 + 미리보기 + 그래프
 # ==========================
 def upload(request):
-    preview = None
-    img_tag = None
+    preview = None   # 데이터프레임 HTML
+    img_tag = None   # matplotlib 그래프
 
     if request.method == "POST":
-        uploaded_file = request.FILES['file']
+        uploaded_file = request.FILES.get('file')
+
+        if not uploaded_file:
+            return HttpResponse("⚠️ 파일이 업로드되지 않았습니다.")
 
         # 파일 크기 제한 (10MB)
         max_size = 10 * 1024 * 1024
@@ -29,16 +32,18 @@ def upload(request):
         if not uploaded_file.name.endswith('.csv'):
             return HttpResponse("❌ CSV 파일만 업로드 가능합니다!")
 
-        # CSV 읽기 (UTF-8 → cp949 순서 시도)
+        # =====================
+        # CSV 읽기 (UTF-8 → CP949 순서 시도)
+        # =====================
         try:
             df = pd.read_csv(uploaded_file, encoding="utf-8", on_bad_lines="skip")
         except UnicodeDecodeError:
             df = pd.read_csv(uploaded_file, encoding="cp949", on_bad_lines="skip")
 
         # 데이터 미리보기
-        preview = df.head().to_html()
+        preview = df.head().to_html(classes="table table-bordered table-striped", border=0)
 
-        # 첫 번째 숫자형 컬럼으로 그래프 생성
+        # 숫자형 컬럼 → 그래프 생성
         numeric_cols = df.select_dtypes(include=['number']).columns
         if len(numeric_cols) > 0:
             plt.figure(figsize=(6,4))
@@ -57,7 +62,6 @@ def upload(request):
         "preview": preview,
         "img_tag": img_tag,
     })
-
 
 
 

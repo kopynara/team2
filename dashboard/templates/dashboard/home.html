@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>🚀 Team2 Dashboard (2조 메인 페이지)</h1>
+  <p>CSV 파일 업로드 → 데이터 확인 → 시각화까지!</p>
+  <a href="{% url 'upload' %}" class="btn btn-primary">📂 CSV 업로드 하러 가기</a>
+{% endblock %}
+
+{% block extra_css %}
+  <style>
+    h1 { color: #2c3e50; }
+    p { font-size: 1.1rem; }
+  </style>
+{% endblock %}
