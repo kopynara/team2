@@ -8,7 +8,37 @@
 
 ## ⚡ 실행 방법
 
-### 1. 프로젝트 클론
+
+1. 프로젝트 클론
+
 ```bash
-git clone https://github.com/kopynara/team2_django.git
-cd team2_django
+git clone https://github.com/kopynara/team2.git
+cd team2
+```
+
+2. 가상환경 생성 및 실행 (선택 사항)
+# 가상환경 생성
+
+```bash
+python -m venv team2_env
+```
+
+# Windows
+```bash
+team2_env\Scripts\activate
+```
+
+# Mac/Linux
+```bash
+source team2_env/bin/activate
+```
+
+3. 패키지 설치
+```bash
+pip install -r requirements.txt
+```
+
+4. 서버 실행
+```bash
+python manage.py runserver
+```
