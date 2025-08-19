@@ -2,51 +2,44 @@ from django.shortcuts import render
 from django.http import HttpResponse
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 import io, urllib, base64
+from sklearn.datasets import load_iris
+
 
 def home(request):
     return render(request, "dashboard/home.html")
 
-def visualize(request):
-    return render(request, "dashboard/visualize.html    ")
 
-# ==========================
-# 🎨 CSV 업로드 + 미리보기 + 그래프
-# ==========================
 def upload(request):
-    preview = None   # 데이터프레임 HTML
-    img_tag = None   # matplotlib 그래프
+    preview = None
+    img_tag = None
 
     if request.method == "POST":
-        uploaded_file = request.FILES.get('file')
-
-        if not uploaded_file:
-            return HttpResponse("⚠️ 파일이 업로드되지 않았습니다.")
+        uploaded_file = request.FILES['file']
 
         # 파일 크기 제한 (10MB)
         max_size = 10 * 1024 * 1024
         if uploaded_file.size > max_size:
-            return HttpResponse("⚠️ 파일이 10MB를 초과했습니다. 더 작은 파일을 올려주세요!")
+            return HttpResponse("⚠️ 파일이 10MB를 초과했습니다.")
 
         # 확장자 제한
         if not uploaded_file.name.endswith('.csv'):
             return HttpResponse("❌ CSV 파일만 업로드 가능합니다!")
 
-        # =====================
-        # CSV 읽기 (UTF-8 → CP949 순서 시도)
-        # =====================
+        # CSV 읽기
         try:
             df = pd.read_csv(uploaded_file, encoding="utf-8", on_bad_lines="skip")
         except UnicodeDecodeError:
             df = pd.read_csv(uploaded_file, encoding="cp949", on_bad_lines="skip")
 
         # 데이터 미리보기
-        preview = df.head().to_html(classes="table table-bordered table-striped", border=0)
+        preview = df.head().to_html()
 
-        # 숫자형 컬럼 → 그래프 생성
+        # 첫 번째 숫자형 컬럼으로 그래프 생성
         numeric_cols = df.select_dtypes(include=['number']).columns
         if len(numeric_cols) > 0:
-            plt.figure(figsize=(6,4))
+            plt.figure(figsize=(6, 4))
             df[numeric_cols[0]].head(20).plot(kind="bar")
             plt.title(f"예시 그래프: {numeric_cols[0]} (상위 20개)")
 
@@ -62,6 +55,30 @@ def upload(request):
         "preview": preview,
         "img_tag": img_tag,
     })
+
+
+def visualize(request):
+    """🌸 독립 테스트용: iris 데이터셋 산점도 시각화"""
+    iris = load_iris(as_frame=True)
+    df = iris.frame
+
+    plt.figure(figsize=(6, 4))
+    sns.scatterplot(x="sepal length (cm)", y="sepal width (cm)",
+                    hue="target", data=df, palette="Set2")
+    plt.title("Iris Dataset (샘플 시각화)")
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    string = base64.b64encode(buf.read())
+    uri = urllib.parse.quote(string)
+    img_tag = f'<img src="data:image/png;base64,{uri}" />'
+    plt.close()
+
+    return render(request, "dashboard/visualize.html", {
+        "img_tag": img_tag
+    })
+
 
 
 
